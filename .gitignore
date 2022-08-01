@@ -15,3 +15,8 @@ mkfs
 kernel/kernel
 user/usys.S
 .gdbinit
+
+# vscode log
+configurationCache.log
+dryrun.log
+targets.log
