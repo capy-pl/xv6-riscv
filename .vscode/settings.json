@@ -16,6 +16,7 @@
         "*.js": "javascript",
         "types.h": "c",
         "stat.h": "c",
-        "user.h": "c"
+        "user.h": "c",
+        "fs.h": "c"
     },
 }
