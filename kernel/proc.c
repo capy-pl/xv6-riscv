@@ -245,7 +245,7 @@ userinit(void)
   // prepare for the very first "return" from kernel to user.
   p->trapframe->epc = 0;      // user program counter
   p->trapframe->sp = PGSIZE;  // user stack pointer
-
+  p->tracemask = 0;           // set default mask to 0
   safestrcpy(p->name, "initcode", sizeof(p->name));
   p->cwd = namei("/");
 
@@ -295,6 +295,9 @@ fork(void)
     return -1;
   }
   np->sz = p->sz;
+
+  // copy trace mask
+  np->tracemask = p->tracemask;
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
