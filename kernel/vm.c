@@ -459,7 +459,7 @@ void vmprint_walk(pagetable_t pagetable, int level) {
       paddr = PTE2PA(pte);
       vmprint_prefix(level);
       printf("%d: pte %p pa %p\n", i, pte, paddr);
-      vmprint_walk((uint64 *)paddr, level + 1);
+      vmprint_walk((pagetable_t)paddr, level + 1);
     }
   }
 }
