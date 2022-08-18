@@ -139,6 +139,7 @@ UPROGS=\
 	$U/_trace\
 	$U/_sysinfo\
 	$U/_ugetpid\
+	$U/_pgaccess_test\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

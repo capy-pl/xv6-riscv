@@ -102,3 +102,48 @@ sys_trace(void) {
 
   return 1;
 }
+
+uint64
+sys_pgaccess(void) {
+  uint64 vstart, buf;
+  int num, i;
+  struct proc *p;
+  pte_t *pte;
+  uint64 mask = 0;
+
+  argaddr(0, &vstart);
+  argint(1, &num);
+  argaddr(2, &buf);
+
+  // since we are using a bit mask to store the result,
+  // if the number of examined page exceed the number of the bit of
+  // the mask, we terminate the system call.
+  if (num > sizeof(mask) * 8) {
+    return -1;
+  }
+
+  // if range of the examined address space exceeds the maximum
+  // virtual address, terminate the system call.
+  if (vstart + num * PGSIZE > MAXVA) {
+    return -1;
+  }
+
+  p = myproc();
+
+  for (i = 0;i < num; i++) {
+    pte = walk(p->pagetable, vstart, 0);
+
+    // if the pte is valid and is accessed, update the mask
+    if ((*pte & PTE_V) && (*pte & PTE_A) > 0) {
+      mask |= (1 << i);
+      
+      // use xor to clear the a bit
+      *pte ^= PTE_A;
+    }
+  
+    vstart += PGSIZE;
+  }
+
+  copyout(p->pagetable, buf, (char *)&mask, sizeof(mask));
+  return 1;
+}
