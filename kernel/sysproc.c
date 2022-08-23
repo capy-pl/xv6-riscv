@@ -147,3 +147,30 @@ sys_pgaccess(void) {
   copyout(p->pagetable, buf, (char *)&mask, sizeof(mask));
   return 1;
 }
+
+uint64 sys_sigalarm(void) {
+  int interval;
+  uint64 handler;
+  struct proc *p;
+  p = myproc();
+
+  argint(0, &interval);
+  argaddr(1, &handler);
+  if (interval < 0 || handler < 0) {
+    return -1;
+  }
+
+  p->sigalarm.interval = interval;
+  p->sigalarm.handler = handler;
+  p->sigalarm.elapsed = 0;
+
+  return 0;
+}
+
+uint64 sys_sigreturn(void) {
+  struct proc *p;
+  p = myproc();
+  // copy the trapframe back
+  memmove(p->trapframe, &p->sigalarm.trapframe, sizeof(struct trapframe));
+  return 0;
+}

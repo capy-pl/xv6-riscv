@@ -154,6 +154,13 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
+  // Set up and initialize the sigalarm field
+  memset(&p->sigalarm, 0, sizeof(struct sigalarm));
+  memset(&p->sigalarm.trapframe, 0, sizeof(struct trapframe));
+  p->sigalarm.interval = 0;
+  p->sigalarm.elapsed = 0;
+  p->sigalarm.handler = 0;
+
   return p;
 }
 
@@ -183,6 +190,11 @@ freeproc(struct proc *p)
   p->chan = 0;
   p->killed = 0;
   p->xstate = 0;
+  p->sigalarm.elapsed = 0;
+  p->sigalarm.interval = 0;
+  p->sigalarm.handler = 0;
+  memset(&p->sigalarm.trapframe, 0, sizeof(struct trapframe));
+
   p->state = UNUSED;
 }
 

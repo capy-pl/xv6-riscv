@@ -81,6 +81,13 @@ struct trapframe {
 
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
+struct sigalarm {
+  uint64 handler;
+  int interval;
+  int elapsed;
+  struct trapframe trapframe;
+};
+
 // Per-process state
 struct proc {
   struct spinlock lock;
@@ -106,4 +113,5 @@ struct proc {
   char name[16];               // Process name (debugging)
   int tracemask;               // The bit mask for tracing system call
   struct usyscall *usyscall;   // the pid of the current proc
+  struct sigalarm sigalarm;
 };

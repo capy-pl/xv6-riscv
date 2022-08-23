@@ -77,8 +77,18 @@ usertrap(void)
     exit(-1);
 
   // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2)
+  if(which_dev == 2) {
+    // if there is a pending timer, and the time elapsed is bigger than the interval
+    // store the current trapframe and point the epc to the alarm handler.
+    if (p->sigalarm.interval > 0 && ++p->sigalarm.elapsed >= p->sigalarm.interval) {
+      // copy the trapframe into sigalarm
+      memmove(&p->sigalarm.trapframe, p->trapframe, sizeof(struct trapframe));
+      p->trapframe->epc = p->sigalarm.handler;
+      p->sigalarm.elapsed = 0;
+    }
+
     yield();
+  }
 
   usertrapret();
 }
