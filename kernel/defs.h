@@ -64,6 +64,8 @@ void*           kalloc(void);
 void            kfree(void *);
 void            kinit(void);
 uint64          freemem(void);
+int             kincref(uint64);
+int             kdecref(uint64);
 
 // log.c
 void            initlog(int, struct superblock*);
@@ -178,6 +180,7 @@ int             copyin(pagetable_t, char *, uint64, uint64);
 int             copyinstr(pagetable_t, char *, uint64, uint64);
 void            vmprint(pagetable_t);
 pte_t*          walk(pagetable_t, uint64, int);
+int             intrcow(pagetable_t, pte_t *);
 
 // plic.c
 void            plicinit(void);

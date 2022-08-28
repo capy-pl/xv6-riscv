@@ -37,6 +37,7 @@ void
 usertrap(void)
 {
   int which_dev = 0;
+  pte_t *pte;
 
   if((r_sstatus() & SSTATUS_SPP) != 0)
     panic("usertrap: not from user mode");
@@ -65,6 +66,18 @@ usertrap(void)
     intr_on();
 
     syscall();
+  }
+  else if(r_scause() == 15) {
+    // write page fault occurs
+    // check the MAXVA
+    if (r_stval() >= MAXVA || ((pte = walk(p->pagetable, r_stval(), 0)) == 0)) {
+      p->killed = 1;
+    }
+
+    if (p->killed != 1 && (*pte & PTE_COW) > 0 && intrcow(p->pagetable, pte) == 0) {
+      p->killed = 1;
+    }
+
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {

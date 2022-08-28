@@ -70,6 +70,25 @@ kvminithart()
   sfence_vma();
 }
 
+// return 1 on success, 0 on failed
+int intrcow(pagetable_t pagetable, pte_t *pte) {
+  char* pa;
+  uint flags;
+  if (pte == 0 || (*pte & PTE_U) == 0 || (*pte & PTE_V) == 0 || (*pte & PTE_COW) == 0)
+    return 0;
+  if ((pa = kalloc()) == 0) {
+    printf("cow handler: now allocatable memory\n");
+    return 0;
+  }
+  flags = PTE_FLAGS(*pte);
+  flags |= PTE_W;
+  flags &= ~PTE_COW;
+  memmove(pa, (void*)PTE2PA(*pte), PGSIZE);
+  kfree((void*)PTE2PA(*pte));
+  *pte = PA2PTE(pa) | flags;
+  return 1;
+}
+
 // Return the address of the PTE in page table pagetable
 // that corresponds to virtual address va.  If alloc!=0,
 // create any required page-table pages.
@@ -85,8 +104,10 @@ kvminithart()
 pte_t *
 walk(pagetable_t pagetable, uint64 va, int alloc)
 {
-  if(va >= MAXVA)
+  if(va >= MAXVA) {
+    printf("%p\n", va);
     panic("walk");
+  }
 
   for(int level = 2; level > 0; level--) {
     pte_t *pte = &pagetable[PX(level, va)];
@@ -308,7 +329,7 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
   pte_t *pte;
   uint64 pa, i;
   uint flags;
-  char *mem;
+  // char *mem;
 
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walk(old, i, 0)) == 0)
@@ -316,12 +337,20 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     if((*pte & PTE_V) == 0)
       panic("uvmcopy: page not present");
     pa = PTE2PA(*pte);
+
+    // do not allocate a new page
+    // if((mem = kalloc()) == 0)
+    //   goto err;
+    // memmove(mem, (char*)pa, PGSIZE);
+
+    // clear the parent process pte's write bit
+    *pte &= (~PTE_W);
+    *pte |= PTE_COW;
     flags = PTE_FLAGS(*pte);
-    if((mem = kalloc()) == 0)
-      goto err;
-    memmove(mem, (char*)pa, PGSIZE);
-    if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
-      kfree(mem);
+
+    kincref(pa);
+    if(mappages(new, i, PGSIZE, (uint64)pa, flags) != 0){
+      kfree((void *)pa);
       goto err;
     }
   }
@@ -352,10 +381,23 @@ int
 copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
 {
   uint64 n, va0, pa0;
-
+  pte_t *pte;
   while(len > 0){
     va0 = PGROUNDDOWN(dstva);
-    pa0 = walkaddr(pagetable, va0);
+    if (va0 >= MAXVA) {
+      return -1;
+    }
+    pte = walk(pagetable, va0, 0);
+    if (pte == 0)
+      return -1;
+
+    // if this is a cow page
+    if (((*pte) & PTE_COW) > 0 && intrcow(pagetable, pte) == 0) {
+      printf("here\n");
+      return -1;
+    }
+    pte = walk(pagetable, va0, 0);
+    pa0 = PTE2PA(*pte);
     if(pa0 == 0)
       return -1;
     n = PGSIZE - (dstva - va0);
