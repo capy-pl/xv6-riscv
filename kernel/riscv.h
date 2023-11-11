@@ -327,6 +327,15 @@ sfence_vma()
   asm volatile("sfence.vma zero, zero");
 }
 
+// read frame pointer
+static inline uint64
+r_fp()
+{
+  uint64 x;
+  asm volatile("mv %0, s0" : "=r" (x) );
+  return x;
+}
+
 typedef uint64 pte_t;
 typedef uint64 *pagetable_t; // 512 PTEs
 
@@ -363,18 +372,6 @@ typedef uint64 *pagetable_t; // 512 PTEs
 // Sv39, to avoid having to sign-extend virtual addresses
 // that have the high bit set.
 #define MAXVA (1L << (9 + 9 + 9 + 12 - 1))
-
-typedef uint64 pte_t;
-typedef uint64 *pagetable_t; // 512 PTEs
-
-// read frame pointer
-static inline uint64
-r_fp()
-{
-  uint64 x;
-  asm volatile("mv %0, s0" : "=r" (x) );
-  return x;
-}
 
 #define FPADDR(fp) (fp - 16)
 #define RAADDR(fp) (fp - 8)
