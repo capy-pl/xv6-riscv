@@ -69,5 +69,5 @@
 #define USYSCALL (TRAPFRAME - PGSIZE)
 
 struct usyscall {
-    int pid;           
+    int pid;
 };

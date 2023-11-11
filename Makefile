@@ -141,6 +141,7 @@ UPROGS=\
 	$U/_ugetpid\
 	$U/_pgaccess_test\
 	$U/_sigalarmtest\
+	$U/_uthread\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
