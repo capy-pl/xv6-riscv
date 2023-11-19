@@ -5,7 +5,7 @@
          * restore the new thread's registers.
          */
 
-	.globl thread_switch
+.globl thread_switch
 thread_switch:
 	sd ra, 0(a0)
 	sd sp, 8(a0)

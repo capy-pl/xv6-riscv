@@ -68,6 +68,8 @@
 
 #define USYSCALL (TRAPFRAME - PGSIZE)
 
+#ifdef CCODE
 struct usyscall {
     int pid;
 };
+#endif
