@@ -1,6 +1,6 @@
 ## INTRODUCTION
 
-This repository is initially to practice lab assignments from the MIT 6.828 Operating System Engineering course. Aside from the course's assignments, I also plain to implemented some other kernel features in this repository.
+This repository is initially to practice lab assignments from the MIT 6.828 Operating System Engineering course. After finishing the course's assignments, I plan to implemented some other kernel features in this repository.
 
 ## CURRENT FEATURES
 
